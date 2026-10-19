@@ -1,5 +1,10 @@
 # 变更记录
 
+## Unreleased
+
+- 强化 `flowmarks-bookmarks` Skill：强制逐行验证锚点、拆分工作流边界、要求行为结论有代码证据。
+- 增加 `validate_candidate.py`，自动校验候选路径、行号范围和 `expectedLineText`。
+
 ## 0.2.0 - 2026-10-19
 
 - 增加当前项目 `.flowmarks/inbox/` 候选目录自动扫描。

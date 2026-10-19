@@ -25,6 +25,8 @@ Skill 文件在本仓库：
 
 **[flowmarks-bookmarks-skill.zip](https://github.com/Kai-Junhan/flowmarks/releases/download/v0.2.0/flowmarks-bookmarks-skill.zip)**
 
+Skill 自带 `scripts/validate_candidate.py`，生成候选后会校验文件路径、行号和原文是否一致。
+
 三种方式任选：
 
 **方式 A：agent 直接读本项目**
