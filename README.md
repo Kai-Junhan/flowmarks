@@ -23,7 +23,7 @@ Skill 文件在本仓库：
 
 也可以直接从 Releases 下载打包好的 Skill：
 
-**[flowmarks-bookmarks-skill.zip](https://github.com/Kai-Junhan/flowmarks/releases/download/v0.2.0/flowmarks-bookmarks-skill.zip)**
+**[flowmarks-bookmarks-skill.zip](https://github.com/Kai-Junhan/flowmarks/releases/download/v0.2.1/flowmarks-bookmarks-skill.zip)**
 
 Skill 自带 `scripts/validate_candidate.py`，生成候选后会校验文件路径、行号和原文是否一致。
 
@@ -58,7 +58,7 @@ git clone https://github.com/Kai-Junhan/flowmarks.git
 
 ### 第 2 步：装好插件
 
-先拿到安装包 `FlowMarks-0.2.0.zip`。
+先拿到安装包 `FlowMarks-0.2.1.zip`。
 
 **方式 A：自己构建**
 
@@ -68,7 +68,7 @@ cd flowmarks
 ./gradlew clean test buildPlugin
 ```
 
-Windows 使用 `./gradlew.bat`。构建产物在 `build/distributions/FlowMarks-0.2.0.zip`。
+Windows 使用 `./gradlew.bat`。构建产物在 `build/distributions/FlowMarks-0.2.1.zip`。
 
 **方式 B：从 Releases 下载**
 

@@ -1,9 +1,11 @@
 # 变更记录
 
-## Unreleased
+## 0.2.1 - 2026-10-19
 
 - 强化 `flowmarks-bookmarks` Skill：强制逐行验证锚点、拆分工作流边界、要求行为结论有代码证据。
 - 增加 `validate_candidate.py`，自动校验候选路径、行号范围和 `expectedLineText`。
+- 插件扫描 inbox 时同步校验文件存在、行号范围和 `expectedLineText`，坏候选不再进入导入列表。
+- Skill 增加简短回复模板，讨论结果限制为结论、锚点表和关键约束。
 
 ## 0.2.0 - 2026-10-19
 

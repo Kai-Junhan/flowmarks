@@ -98,7 +98,41 @@ class BookmarkInboxTest {
         assertTrue(Files.exists(outside));
     }
 
+    @Test
+    void rejectsCandidateWhenLineTextDoesNotMatch() throws IOException {
+        Path root = Files.createDirectory(tempDir.resolve("project"));
+        Path source = root.resolve("src/Target.java");
+        Files.createDirectories(source.getParent());
+        Files.writeString(source, "// comment\npublic class Target {\n}\n", StandardCharsets.UTF_8);
+        writeRaw(root, "wrong-line.json", """
+                {"version":1,"groups":[{"name":"Wrong","items":[{"title":"Entry","filePath":"src/Target.java","line":2,"expectedLineText":"// comment"}]}]}
+                """);
+
+        BookmarkInbox.ScanResult result = inbox.scan(root);
+
+        assertTrue(result.candidates().isEmpty());
+        assertEquals(1, result.failures().size());
+        assertTrue(result.failures().getFirst().message().contains("不一致"));
+    }
+
+    @Test
+    void rejectsCandidateWhenReferencedFileIsMissing() throws IOException {
+        Path root = Files.createDirectory(tempDir.resolve("project"));
+        writeRaw(root, "missing.json", """
+                {"version":1,"groups":[{"name":"Missing","items":[{"title":"Entry","filePath":"src/Missing.java","line":1,"expectedLineText":"class Missing {"}]}]}
+                """);
+
+        BookmarkInbox.ScanResult result = inbox.scan(root);
+
+        assertTrue(result.candidates().isEmpty());
+        assertEquals(1, result.failures().size());
+        assertTrue(result.failures().getFirst().message().contains("文件不存在"));
+    }
+
     private Path writeCandidate(Path root, String name, String group, String filePath) throws IOException {
+        Path source = root.resolve(filePath);
+        Files.createDirectories(source.getParent());
+        Files.writeString(source, "class Main {\n}\n", StandardCharsets.UTF_8);
         return writeRaw(root, name, """
                 {"version":1,"groups":[{"name":"%s","items":[{"title":"Entry","filePath":"%s","line":1,"expectedLineText":"class Main {"}]}]}
                 """.formatted(group, filePath));

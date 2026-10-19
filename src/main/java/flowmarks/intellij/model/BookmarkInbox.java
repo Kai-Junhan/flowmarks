@@ -51,6 +51,7 @@ public final class BookmarkInbox {
                     }
                     BookmarkDocument document = codec.parse(Files.readString(realFile, StandardCharsets.UTF_8));
                     validatePaths(realRoot, document);
+                    validateAnchors(realRoot, document);
                     candidates.add(new Candidate(realFile, document));
                 } catch (Exception exception) {
                     failures.add(new Failure(file, message(exception)));
@@ -101,6 +102,38 @@ public final class BookmarkInbox {
                 }
                 if (!root.resolve(path).normalize().startsWith(root)) {
                     throw new IllegalArgumentException("书签路径越出当前项目目录：" + bookmark.filePath());
+                }
+            }
+        }
+    }
+
+    private static void validateAnchors(Path root, BookmarkDocument document) throws IOException {
+        for (BookmarkGroup group : document.groups()) {
+            for (Bookmark bookmark : group.items()) {
+                Path target = root.resolve(bookmark.filePath()).normalize();
+                if (!Files.isRegularFile(target)) {
+                    throw new IllegalArgumentException("书签文件不存在：" + bookmark.filePath());
+                }
+                Path realTarget = target.toRealPath();
+                if (!realTarget.startsWith(root)) {
+                    throw new IllegalArgumentException("书签路径指向项目目录之外：" + bookmark.filePath());
+                }
+
+                List<String> lines = Files.readAllLines(realTarget, StandardCharsets.UTF_8);
+                int line = bookmark.line();
+                if (line > lines.size()) {
+                    throw new IllegalArgumentException("书签行号超出文件范围：" + bookmark.filePath()
+                            + ":" + line + "（文件共 " + lines.size() + " 行）");
+                }
+                String expected = bookmark.expectedLineText().trim();
+                if (expected.isEmpty()) {
+                    throw new IllegalArgumentException("书签缺少 expectedLineText，无法校验："
+                            + bookmark.filePath() + ":" + line);
+                }
+                String actual = lines.get(line - 1).trim();
+                if (!actual.equals(expected)) {
+                    throw new IllegalArgumentException("书签第 " + line + " 行与 expectedLineText 不一致；实际为："
+                            + actual);
                 }
             }
         }
