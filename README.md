@@ -2,97 +2,116 @@
 
 [![Build](https://github.com/Kai-Junhan/flowmarks/actions/workflows/build.yml/badge.svg)](https://github.com/Kai-Junhan/flowmarks/actions/workflows/build.yml)
 
-完全本地、免费、开源的 IntelliJ IDEA 代码链路书签插件。
+一个纯本地、免费、开源的 IntelliJ IDEA 代码链路书签插件。
 
-一句话：**agent 负责读代码并生成书签，FlowMarks 负责导入、展示和跳转。**
+它不内置 AI。真正的工作方式是：
 
-插件不内置 AI，不依赖 BookmarkAI 运行时，不使用云端接口、登录、会员、许可证或遥测。
+- **agent 负责读代码**，用仓库里的 Skill 生成书签 JSON。
+- **FlowMarks 负责读书签**，在 IDEA 里按分组展示，双击跳转。
 
-## 怎么用
-
-~~~text
-agent + flowmarks-bookmarks Skill
-              ↓
-     .flowmarks/inbox/*.json
-              ↓
-      FlowMarks 导入候选
-              ↓
-   .flowmarks.json → 双击跳转代码
-~~~
-
-1. 让 agent 使用 `.agents/skills/flowmarks-bookmarks/SKILL.md` 读取项目，先给出书签方案，确认后生成 JSON。
-2. 在 IDEA 打开 FlowMarks，点击“刷新”，插件会自动发现当前项目的候选文件。
-3. 点击“导入候选”，书签按分组显示；双击书签跳转到代码。
-
-agent 不修改业务代码，也不写正式书签文件；插件只读取候选、保存书签和负责跳转。
-
-## 项目隔离
-
-每个 IDEA 项目只使用自己根目录下的数据：
-
-~~~text
-.flowmarks.json          正式书签
-.flowmarks/inbox/        agent 生成的候选
-.flowmarks/archive/      已处理的候选
-~~~
-
-插件只读取当前项目，不会跨项目合并书签。绝对路径和 `..` 越界路径会被拒绝，数据不会写入 `.idea/workspace.xml`。
+所以你要装的只有两样：**Skill** 和 **插件**。
 
 ## 安装
 
-1. 构建或取得 `FlowMarks-0.2.0.zip`。
-2. 打开 `Settings > Plugins > 齿轮 > Install Plugin from Disk...`。
-3. 选择 ZIP，重启 IDEA。
-4. 从 `View > Tool Windows > FlowMarks` 打开工具窗口。
+### 第 1 步：把 Skill 喂给 agent
 
-## 书签格式
+Skill 文件在本仓库：
 
-agent 生成的标准 JSON：
+```text
+.agents/skills/flowmarks-bookmarks/SKILL.md
+```
 
-~~~json
-{
-  "version": 1,
-  "groups": [
-    {
-      "name": "登录处理链路",
-      "items": [
-        {
-          "title": "接收登录请求并校验参数",
-          "filePath": "src/main/java/example/LoginController.java",
-          "line": 42,
-          "expectedLineText": "public LoginResult login(LoginRequest request) {"
-        }
-      ]
-    }
-  ]
-}
-~~~
+三种方式任选：
 
-示例文件：`examples/sample-flowmarks.json`。插件也兼容 BookmarkAI 的 `targetGroupName` + `items` 格式。
+**方式 A：agent 直接读本项目**
 
-## 构建
+如果你的 agent 能读当前项目（比如 Codex），打开仓库后它会自动发现 `.agents/skills` 下的 `flowmarks-bookmarks`，无需复制。
 
-需要 Java 21，项目自带 Gradle Wrapper：
+**方式 B：复制到 agent 的 skills 目录**
 
-~~~powershell
-./gradlew.bat clean test buildPlugin
-~~~
+| Runtime | 复制到 |
+|---|---|
+| Codex | `~/.codex/skills/flowmarks-bookmarks/` |
+| Cursor | `~/.cursor/skills/flowmarks-bookmarks/` |
+| Claude Code | `~/.claude/skills/flowmarks-bookmarks/` |
+| 其他 | 对应 runtime 的 `skills/` 目录 |
 
-安装包生成在 `build/distributions/`。插件兼容 IntelliJ 平台构建号 `253.*`，已在 IntelliJ IDEA `2025.3.6.1` 上验证。
+Windows 的 `~` 指 `C:\Users\你的用户名`。
+
+先下载仓库：
+
+```bash
+git clone https://github.com/Kai-Junhan/flowmarks.git
+```
+
+然后把 `.agents/skills/flowmarks-bookmarks/` 整个目录复制到上表对应位置。
+
+**方式 C：直接粘贴**
+
+把 `SKILL.md` 的完整内容粘贴进对话，它本质就是一段 Markdown 指令。
+
+### 第 2 步：装好插件
+
+先拿到安装包 `FlowMarks-0.2.0.zip`。
+
+**方式 A：自己构建**
+
+```bash
+git clone https://github.com/Kai-Junhan/flowmarks.git
+cd flowmarks
+./gradlew clean test buildPlugin
+```
+
+Windows 使用 `./gradlew.bat`。构建产物在 `build/distributions/FlowMarks-0.2.0.zip`。
+
+**方式 B：从 Releases 下载**
+
+到 [Releases](https://github.com/Kai-Junhan/flowmarks/releases) 页面下载最新 `FlowMarks-*.zip`。
+
+然后在 IDEA 安装：
+
+```text
+Settings > Plugins > 齿轮图标 > Install Plugin from Disk...
+```
+
+选择 ZIP，重启 IDEA，从 `View > Tool Windows > FlowMarks` 打开工具窗口。
+
+## 使用
+
+1. 告诉 agent 整理某条链路，例如“帮我整理登录链路”。
+2. agent 先给出书签方案，你确认后，它把 JSON 写入当前项目的 `.flowmarks/inbox/`。
+3. 打开 FlowMarks，点“刷新”，再点“导入候选”。
+4. 双击书签跳转代码；行号变化时会按 `expectedLineText` 自动重新定位。
+
+agent 不修改业务代码；插件只读取候选、保存书签和跳转。
+
+## 数据放在哪
+
+每个 IDEA 项目独立保存，不跨项目合并：
+
+```text
+.flowmarks.json          正式书签
+.flowmarks/inbox/        agent 生成的候选
+.flowmarks/archive/      已处理的候选
+```
+
+## 仓库结构
+
+```text
+flowmarks/
+├── .agents/skills/flowmarks-bookmarks/   # 喂给 agent 的 Skill
+│   └── SKILL.md
+├── src/main/java/flowmarks/intellij/     # 插件源码
+├── src/main/resources/META-INF/plugin.xml # 插件注册
+├── src/test/java/                        # 单元测试
+├── examples/sample-flowmarks.json        # 书签 JSON 示例
+├── build.gradle.kts                      # 构建配置
+└── .github/workflows/build.yml           # CI 构建检查
+```
 
 ## 开发
 
-- `src/main/java/flowmarks/intellij/model`：书签模型、JSON、路径校验、行定位、持久化和候选扫描。
-- `src/main/java/flowmarks/intellij/toolwindow`：FlowMarks 工具窗口。
-- `src/test/java`：核心模型和项目隔离测试。
-- `.agents/skills/flowmarks-bookmarks`：agent 书签生成 Skill。
-- `examples`：JSON 示例。
-
-## 限制
-
-- 当前只兼容 IntelliJ 平台构建号 `253.*`。
-- 代码阅读和书签总结由外部本地 agent 完成。
-- 尚未发布到 JetBrains Marketplace。
+需要 Java 21，项目自带 Gradle Wrapper，兼容 IntelliJ 平台构建号 `253.*`。
 
 ## 许可证
 
