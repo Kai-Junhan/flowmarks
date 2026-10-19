@@ -21,6 +21,10 @@ Skill 文件在本仓库：
 .agents/skills/flowmarks-bookmarks/SKILL.md
 ```
 
+也可以直接从 Releases 下载打包好的 Skill：
+
+**[flowmarks-bookmarks-skill.zip](https://github.com/Kai-Junhan/flowmarks/releases/download/v0.2.0/flowmarks-bookmarks-skill.zip)**
+
 三种方式任选：
 
 **方式 A：agent 直接读本项目**
