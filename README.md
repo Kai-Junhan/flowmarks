@@ -23,9 +23,11 @@ Skill 文件在本仓库：
 
 也可以直接从 Releases 下载打包好的 Skill：
 
-**[flowmarks-bookmarks-skill.zip](https://github.com/Kai-Junhan/flowmarks/releases/download/v0.3.0/flowmarks-bookmarks-skill.zip)**
+**[FlowMarks-AgentSkill-0.3.0.zip](https://github.com/Kai-Junhan/flowmarks/releases/download/v0.3.0/FlowMarks-AgentSkill-0.3.0.zip)**
 
 Skill 自带 `scripts/validate_candidate.py`，生成候选后会校验文件路径、行号和原文是否一致。
+
+> **IDEA 只能安装 `FlowMarks-0.3.0.zip`。** `FlowMarks-AgentSkill-*.zip` 是给 agent 的 Skill，不能通过 `Install Plugin from Disk` 安装。
 
 三种方式任选：
 
