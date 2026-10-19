@@ -1,5 +1,7 @@
 # FlowMarks
 
+[![Build](https://github.com/Kai-Junhan/flowmarks/actions/workflows/build.yml/badge.svg)](https://github.com/Kai-Junhan/flowmarks/actions/workflows/build.yml)
+
 FlowMarks 是一个完全本地、免费、开源的 IntelliJ IDEA 代码链路书签插件。
 
 它不内置 AI，不依赖 BookmarkAI 运行时，不使用云端接口、登录、会员、许可证或遥测。代码理解由本地 agent 完成，FlowMarks 负责读取书签、按分组展示并跳转到代码。
