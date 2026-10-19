@@ -11,6 +11,12 @@
 
 所以你要装的只有两样：**Skill** 和 **插件**。
 
+## 效果
+
+![FlowMarks 0.3.0 工具窗口](docs/images/flowmarks-example.png)
+
+截图中可以看到步骤编号、分组数量，以及“标题 + 文件名:行号”的两行书签展示。
+
 ## 安装
 
 ### 第 1 步：把 Skill 喂给 agent
