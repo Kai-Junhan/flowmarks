@@ -50,6 +50,12 @@ public final class BookmarkJsonCodec {
                 item.addProperty("filePath", bookmark.filePath());
                 item.addProperty("line", bookmark.line());
                 item.addProperty("expectedLineText", bookmark.expectedLineText());
+                if (!bookmark.step().isBlank()) {
+                    item.addProperty("step", bookmark.step());
+                }
+                if (bookmark.level() > 0) {
+                    item.addProperty("level", bookmark.level());
+                }
                 items.add(item);
             }
             group.add("items", items);
@@ -90,7 +96,12 @@ public final class BookmarkJsonCodec {
             String expectedLineText = item.has("expectedLineText") && !item.get("expectedLineText").isJsonNull()
                     ? item.get("expectedLineText").getAsString()
                     : "";
-            result.add(new Bookmark(title, filePath, line, expectedLineText));
+            String step = optionalString(item, "step");
+            int level = integer(item, "level", 0);
+            if (level < 0) {
+                throw new IllegalArgumentException("书签层级 level 不能为负数：" + title);
+            }
+            result.add(new Bookmark(title, filePath, line, expectedLineText, step, level));
         }
         return result;
     }
@@ -125,5 +136,16 @@ public final class BookmarkJsonCodec {
         } catch (RuntimeException exception) {
             throw new IllegalArgumentException("字段 " + key + " 必须是整数。", exception);
         }
+    }
+
+    private static String optionalString(JsonObject object, String key) {
+        JsonElement value = object.get(key);
+        if (value == null || value.isJsonNull()) {
+            return "";
+        }
+        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+            throw new IllegalArgumentException("字段 " + key + " 必须是字符串。");
+        }
+        return value.getAsString().trim();
     }
 }

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -59,6 +60,8 @@ def validate(project_root: Path, candidate_path: Path) -> None:
         file_path = item.get("filePath")
         line = item.get("line")
         expected = item.get("expectedLineText", "")
+        step = item.get("step", "")
+        level = item.get("level", 0)
         if not isinstance(file_path, str) or not file_path.strip():
             errors.append(f"{title}：缺少 filePath")
             continue
@@ -68,6 +71,14 @@ def validate(project_root: Path, candidate_path: Path) -> None:
         if not isinstance(expected, str):
             errors.append(f"{title}：expectedLineText 必须是字符串")
             continue
+        if step:
+            if not isinstance(step, str) or not re.fullmatch(r"\d+(\.\d+)*", step):
+                errors.append(f"{title}：step 必须形如 1、2.1 或 2.1.3")
+                continue
+            expected_level = step.count(".")
+            if not isinstance(level, int) or level != expected_level:
+                errors.append(f"{title}：step={step} 时 level 应为 {expected_level}")
+                continue
 
         relative = Path(file_path)
         if relative.is_absolute():

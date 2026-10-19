@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BookmarkJsonCodecTest {
     private final BookmarkJsonCodec codec = new BookmarkJsonCodec();
@@ -37,5 +38,19 @@ class BookmarkJsonCodecTest {
         assertThrows(IllegalArgumentException.class, () -> codec.parse("""
                 {"version":2,"groups":[]}
                 """));
+    }
+
+    @Test
+    void parsesAndSerializesOptionalStepAndLevel() {
+        BookmarkDocument document = codec.parse("""
+                {"version":1,"groups":[{"name":"Login","items":[{"title":"Entry","filePath":"src/Main.java","line":4,"expectedLineText":"main()","step":"2.1","level":1}]}]}
+                """);
+
+        Bookmark bookmark = document.groups().getFirst().items().getFirst();
+        assertEquals("2.1", bookmark.step());
+        assertEquals(1, bookmark.level());
+        String serialized = codec.serialize(document);
+        assertTrue(serialized.contains("\"step\": \"2.1\""));
+        assertTrue(serialized.contains("\"level\": 1"));
     }
 }

@@ -52,9 +52,9 @@ description: Analyze one project code workflow, verify exact file/line anchors, 
 
 向用户展示方案时使用可核对的形式：
 
-| # | 标题 | 文件:行 | 原文 | 已验证 |
-|---|---|---|---|---|
-| 1 | ... | `path/File.java:13` | `public class ...` | 是 |
+| 步骤 | 标题 | 文件:行 | 已验证 |
+|---|---|---|---|
+| 1 | ... | `path/File.java:13` | 是 |
 
 不确定的条目写“待确认”，不要伪装成已验证。
 
@@ -116,7 +116,9 @@ description: Analyze one project code workflow, verify exact file/line anchors, 
           "title": "接收登录请求并校验参数",
           "filePath": "src/main/java/example/LoginController.java",
           "line": 42,
-          "expectedLineText": "public LoginResult login(LoginRequest request) {"
+          "expectedLineText": "public LoginResult login(LoginRequest request) {",
+          "step": "1",
+          "level": 0
         }
       ]
     }
@@ -125,6 +127,8 @@ description: Analyze one project code workflow, verify exact file/line anchors, 
 ~~~
 
 插件也兼容 BookmarkAI 的 `targetGroupName` + `items` 格式，但新文件一律使用标准格式。
+
+`step` 和 `level` 是可选字段：主步骤用 `1、2、3` 且 `level=0`；子步骤用 `2.1、2.2` 且 `level=1`。旧候选没有这两个字段时仍然兼容。
 
 ## 项目隔离
 
@@ -138,7 +142,7 @@ description: Analyze one project code workflow, verify exact file/line anchors, 
 讨论阶段的回复只保留以下内容，默认不超过 20 行正文：
 
 1. 一句话结论：这是什么链路、准备生成几条书签。
-2. 一张锚点表，5–8 行，列为：`# | 标题 | 文件:行 | 已验证`。
+2. 一张锚点表，5–8 行，列为：`步骤 | 标题 | 文件:行 | 已验证`。
 3. “关键约束”最多 5 条，每条一行；只写会影响脚本或使用的结论。
 4. 最后一句：请用户回复“确认生成”或提出修改。
 
@@ -155,6 +159,7 @@ description: Analyze one project code workflow, verify exact file/line anchors, 
 
 - [ ] 每个行号都已读回文件核对，`expectedLineText` 与目标行完全一致。
 - [ ] 一个分组只覆盖一个工作流，默认不超过 8 条。
+- [ ] 有子步骤时使用 `2.1/2.2` 和 `level=1`，编号与顺序一致。
 - [ ] 没有把运行时、缓存、绑定、入库混入创建链路。
 - [ ] 没有未经验证的缓存、权限或数据库结论。
 - [ ] 路径全部位于当前项目内。

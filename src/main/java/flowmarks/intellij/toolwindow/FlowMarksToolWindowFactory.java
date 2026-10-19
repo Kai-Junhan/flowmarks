@@ -1,5 +1,6 @@
 package flowmarks.intellij.toolwindow;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.editor.Document;
@@ -26,7 +27,9 @@ import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.components.BorderLayoutPanel;
 import flowmarks.intellij.model.Bookmark;
 import flowmarks.intellij.model.BookmarkDocument;
@@ -39,6 +42,7 @@ import flowmarks.intellij.model.BookmarkStore;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -46,8 +50,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -70,6 +76,69 @@ public final class FlowMarksToolWindowFactory implements ToolWindowFactory, Dumb
     private static String pluginVersion() {
         IdeaPluginDescriptor descriptor = PluginManagerCore.getPlugin(PLUGIN_ID);
         return descriptor == null ? "development" : descriptor.getVersion();
+    }
+
+    private record BookmarkNode(Bookmark bookmark, String displayStep) {
+    }
+
+    private static final class FlowMarksTreeCellRenderer extends JPanel implements TreeCellRenderer {
+        private final JLabel iconLabel = new JLabel();
+        private final JBLabel titleLabel = new JBLabel();
+        private final JBLabel detailsLabel = new JBLabel();
+
+        private FlowMarksTreeCellRenderer() {
+            super(new BorderLayout(JBUI.scale(6), 0));
+            setOpaque(true);
+            titleLabel.setOpaque(false);
+            detailsLabel.setOpaque(false);
+            titleLabel.setFont(JBUI.Fonts.label());
+            detailsLabel.setFont(JBUI.Fonts.smallFont());
+            JPanel text = new JPanel(new BorderLayout());
+            text.setOpaque(false);
+            text.add(titleLabel, BorderLayout.NORTH);
+            text.add(detailsLabel, BorderLayout.SOUTH);
+            add(iconLabel, BorderLayout.WEST);
+            add(text, BorderLayout.CENTER);
+        }
+
+        @Override
+        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded,
+                                                      boolean leaf, int row, boolean hasFocus) {
+            Object userObject = value instanceof DefaultMutableTreeNode node ? node.getUserObject() : null;
+            if (userObject instanceof BookmarkNode node) {
+                Bookmark bookmark = node.bookmark();
+                iconLabel.setIcon(AllIcons.Nodes.Bookmark);
+                titleLabel.setText(node.displayStep().isBlank()
+                        ? bookmark.title() : node.displayStep() + "  " + bookmark.title());
+                detailsLabel.setText(fileName(bookmark.filePath()) + ":" + bookmark.line());
+                detailsLabel.setToolTipText(bookmark.filePath() + ":" + bookmark.line());
+                detailsLabel.setVisible(true);
+                setBorder(JBUI.Borders.empty(2, JBUI.scale(4 + Math.min(bookmark.level(), 6) * 14), 2, JBUI.scale(4)));
+            } else if (userObject instanceof BookmarkGroup group) {
+                iconLabel.setIcon(AllIcons.Nodes.BookmarkGroup);
+                titleLabel.setText(group.name() + "  (" + group.items().size() + ")");
+                detailsLabel.setText("");
+                detailsLabel.setToolTipText(null);
+                detailsLabel.setVisible(false);
+                setBorder(JBUI.Borders.empty(3, JBUI.scale(4), 3, JBUI.scale(4)));
+            } else {
+                iconLabel.setIcon(null);
+                titleLabel.setText(value == null ? "" : value.toString());
+                detailsLabel.setText("");
+                detailsLabel.setToolTipText(null);
+                detailsLabel.setVisible(false);
+                setBorder(JBUI.Borders.empty(3, JBUI.scale(4), 3, JBUI.scale(4)));
+            }
+            setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : UIUtil.getTreeBackground());
+            titleLabel.setForeground(selected ? UIUtil.getTreeSelectionForeground(hasFocus) : UIUtil.getTreeForeground());
+            detailsLabel.setForeground(selected ? UIUtil.getTreeSelectionForeground(hasFocus) : JBColor.GRAY);
+            return this;
+        }
+
+        private static String fileName(String filePath) {
+            int slash = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+            return slash >= 0 ? filePath.substring(slash + 1) : filePath;
+        }
     }
 
     private static final class FlowMarksPanel extends JPanel {
@@ -132,6 +201,8 @@ public final class FlowMarksToolWindowFactory implements ToolWindowFactory, Dumb
 
             tree.setRootVisible(false);
             tree.setShowsRootHandles(true);
+            tree.setRowHeight(JBUI.scale(40));
+            tree.setCellRenderer(new FlowMarksTreeCellRenderer());
             tree.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent event) {
@@ -406,7 +477,8 @@ public final class FlowMarksToolWindowFactory implements ToolWindowFactory, Dumb
                 return;
             }
             Object selected = node.getUserObject();
-            if (selected instanceof Bookmark bookmark) {
+            if (selected instanceof BookmarkNode bookmarkNode) {
+                Bookmark bookmark = bookmarkNode.bookmark();
                 DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) node.getParent();
                 BookmarkGroup group = (BookmarkGroup) parentNode.getUserObject();
                 int confirm = JOptionPane.showConfirmDialog(this, "确定删除书签“" + bookmark.title() + "”吗？",
@@ -460,17 +532,25 @@ public final class FlowMarksToolWindowFactory implements ToolWindowFactory, Dumb
             String query = searchField.getText().trim().toLowerCase(java.util.Locale.ROOT);
             for (BookmarkGroup group : document.groups()) {
                 boolean groupMatches = group.name().toLowerCase(java.util.Locale.ROOT).contains(query);
-                List<Bookmark> matching = new ArrayList<>();
+                List<BookmarkNode> allNodes = new ArrayList<>();
+                int displayIndex = 0;
                 for (Bookmark bookmark : group.items()) {
+                    displayIndex++;
+                    String step = bookmark.step().isBlank() ? String.valueOf(displayIndex) : bookmark.step();
+                    allNodes.add(new BookmarkNode(bookmark, step));
+                }
+                List<BookmarkNode> matching = new ArrayList<>();
+                for (BookmarkNode node : allNodes) {
+                    Bookmark bookmark = node.bookmark();
                     if (query.isEmpty() || groupMatches || bookmark.title().toLowerCase(java.util.Locale.ROOT).contains(query)
                             || bookmark.filePath().toLowerCase(java.util.Locale.ROOT).contains(query)) {
-                        matching.add(bookmark);
+                        matching.add(node);
                     }
                 }
                 if (!matching.isEmpty() || (group.items().isEmpty() && groupMatches)) {
                     DefaultMutableTreeNode groupNode = new DefaultMutableTreeNode(group);
-                    for (Bookmark bookmark : matching) {
-                        groupNode.add(new DefaultMutableTreeNode(bookmark));
+                    for (BookmarkNode node : matching) {
+                        groupNode.add(new DefaultMutableTreeNode(node));
                     }
                     rootNode.add(groupNode);
                 }
@@ -484,9 +564,10 @@ public final class FlowMarksToolWindowFactory implements ToolWindowFactory, Dumb
         private void openSelectedBookmark() {
             TreePath selection = tree.getSelectionPath();
             if (selection == null || !(selection.getLastPathComponent() instanceof DefaultMutableTreeNode node)
-                    || !(node.getUserObject() instanceof Bookmark bookmark)) {
+                    || !(node.getUserObject() instanceof BookmarkNode bookmarkNode)) {
                 return;
             }
+            Bookmark bookmark = bookmarkNode.bookmark();
             if (projectRoot == null) {
                 showStatus("当前项目没有可用的项目根目录。");
                 return;

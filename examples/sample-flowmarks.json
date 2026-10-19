@@ -8,7 +8,17 @@
           "title": "接收登录请求并校验参数",
           "filePath": "src/main/java/example/LoginController.java",
           "line": 42,
-          "expectedLineText": "public LoginResult login(LoginRequest request) {"
+          "expectedLineText": "public LoginResult login(LoginRequest request) {",
+          "step": "1",
+          "level": 0
+        },
+        {
+          "title": "创建会话并返回登录结果",
+          "filePath": "src/main/java/example/SessionService.java",
+          "line": 68,
+          "expectedLineText": "return sessionRepository.create(user);",
+          "step": "2",
+          "level": 0
         }
       ]
     }

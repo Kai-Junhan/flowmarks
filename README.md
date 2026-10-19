@@ -23,7 +23,7 @@ Skill 文件在本仓库：
 
 也可以直接从 Releases 下载打包好的 Skill：
 
-**[flowmarks-bookmarks-skill.zip](https://github.com/Kai-Junhan/flowmarks/releases/download/v0.2.1/flowmarks-bookmarks-skill.zip)**
+**[flowmarks-bookmarks-skill.zip](https://github.com/Kai-Junhan/flowmarks/releases/download/v0.3.0/flowmarks-bookmarks-skill.zip)**
 
 Skill 自带 `scripts/validate_candidate.py`，生成候选后会校验文件路径、行号和原文是否一致。
 
@@ -58,7 +58,7 @@ git clone https://github.com/Kai-Junhan/flowmarks.git
 
 ### 第 2 步：装好插件
 
-先拿到安装包 `FlowMarks-0.2.1.zip`。
+先拿到安装包 `FlowMarks-0.3.0.zip`。
 
 **方式 A：自己构建**
 
@@ -68,7 +68,7 @@ cd flowmarks
 ./gradlew clean test buildPlugin
 ```
 
-Windows 使用 `./gradlew.bat`。构建产物在 `build/distributions/FlowMarks-0.2.1.zip`。
+Windows 使用 `./gradlew.bat`。构建产物在 `build/distributions/FlowMarks-0.3.0.zip`。
 
 **方式 B：从 Releases 下载**
 
@@ -88,6 +88,8 @@ Settings > Plugins > 齿轮图标 > Install Plugin from Disk...
 2. agent 先给出书签方案，你确认后，它把 JSON 写入当前项目的 `.flowmarks/inbox/`。
 3. 打开 FlowMarks，点“刷新”，再点“导入候选”。
 4. 双击书签跳转代码；行号变化时会按 `expectedLineText` 自动重新定位。
+
+书签支持 `step`/`level`：主步骤显示为 `1、2、3`，子步骤显示为 `2.1、2.2` 并自动缩进；树中每行分两行显示标题和文件名:行号。
 
 agent 不修改业务代码；插件只读取候选、保存书签和跳转。
 
