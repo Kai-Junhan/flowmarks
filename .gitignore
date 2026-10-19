@@ -1,0 +1,10 @@
+.gradle/
+.gradle-user-home/
+.idea/
+.intellijPlatform/
+build/
+out/
+*.iml
+*.log
+.flowmarks.json
+local.properties

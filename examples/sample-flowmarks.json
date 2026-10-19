@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "name": "登录处理链路",
+      "items": [
+        {
+          "title": "接收登录请求并校验参数",
+          "filePath": "src/main/java/example/LoginController.java",
+          "line": 42,
+          "expectedLineText": "public LoginResult login(LoginRequest request) {"
+        }
+      ]
+    }
+  ]
+}

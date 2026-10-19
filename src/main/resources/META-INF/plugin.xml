@@ -1,0 +1,17 @@
+<idea-plugin>
+    <id>flowmarks.intellij</id>
+    <name>FlowMarks</name>
+    <vendor>FlowMarks Contributors</vendor>
+    <description><![CDATA[
+        完全本地的代码链路书签工具。
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow
+                id="FlowMarks"
+                anchor="right"
+                factoryClass="flowmarks.intellij.toolwindow.FlowMarksToolWindowFactory"/>
+    </extensions>
+</idea-plugin>
